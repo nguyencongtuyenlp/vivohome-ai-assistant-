@@ -369,10 +369,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-**Developer**: Your Name  
-**Email**: your.email@example.com  
+**Developer**: Nguyễn Công Tuyền
+**Email**: nguyencongtuyenlp@gmail.com  
 **LinkedIn**: [linkedin.com/in/yourprofile](https://linkedin.com/in/yourprofile)  
-**GitHub**: [@yourusername](https://github.com/yourusername)
+**GitHub**: [@nguyencongtuyenlp](https://github.com/nguyencongtuyenlp)
 
 ---
 
