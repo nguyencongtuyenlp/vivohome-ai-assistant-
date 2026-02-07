@@ -1,0 +1,63 @@
+# VIVOHOME AI - Docker Compose
+# Multi-service orchestration: vLLM + Gradio
+
+version: '3.8'
+
+services:
+  # Service 1: vLLM Inference Server
+  vllm:
+    image: vllm/vllm-openai:latest
+    container_name: vivohome-vllm
+    command: >
+      --model Qwen/Qwen2-VL-7B-Instruct-AWQ
+      --quantization awq
+      --gpu-memory-utilization 0.85
+      --max-model-len 2048
+      --port 8000
+    ports:
+      - "8000:8000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    networks:
+      - vivohome-network
+
+  # Service 2: Gradio Web App
+  gradio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vivohome-gradio
+    ports:
+      - "7860:7860"
+    depends_on:
+      vllm:
+        condition: service_healthy
+    environment:
+      - VLLM_URL=http://vllm:8000
+    volumes:
+      - ./vivohome.db:/app/vivohome.db
+      - ./logs:/app/logs
+    networks:
+      - vivohome-network
+    restart: unless-stopped
+
+networks:
+  vivohome-network:
+    driver: bridge
+
+volumes:
+  vivohome-data:
+    driver: local

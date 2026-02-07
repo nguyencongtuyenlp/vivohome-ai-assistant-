@@ -1,0 +1,48 @@
+# VIVOHOME AI - Docker Ignore
+# Files to exclude from Docker build context
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Large files
+*.pth
+*.bin
+*.safetensors
+
+# Local development
+vivohome.db
+logs/
+*.tmp
+
+# Documentation (optional - include if needed)
+# *.md
+# DEMO_SCRIPT.md

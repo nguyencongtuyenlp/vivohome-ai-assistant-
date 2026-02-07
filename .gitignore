@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+vivohome.db
+logs/
+*.log
+
+# Large files (not needed for GitHub)
+*.pth
+*.bin
+*.safetensors
+llama-cpp/
+model/
+
+# Test images (optional - you can include if small)
+# test.jpg
+# thu.webp

@@ -1,0 +1,27 @@
+# VIVOHOME AI - Python Dependencies
+
+# Core AI/ML
+vllm>=0.6.0
+torch>=2.0.0
+transformers>=4.40.0
+
+# Web Framework
+gradio>=6.0.0
+
+# Database
+pandas>=2.0.0
+
+# Vector Store (RAG)
+chromadb>=0.4.0
+sentence-transformers>=2.2.0
+
+# Web Search
+requests>=2.31.0
+tavily-python>=0.3.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Utilities
+Pillow>=10.0.0
