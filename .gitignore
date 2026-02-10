@@ -6,6 +6,7 @@ __pycache__/
 .Python
 env/
 venv/
+.venv/
 *.egg-info/
 dist/
 build/
@@ -25,18 +26,18 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
+# Environment
+.env
+
 # Project specific
 vivohome.db
+chroma_db/
 logs/
 *.log
 
-# Large files (not needed for GitHub)
+# Large files
 *.pth
 *.bin
 *.safetensors
 llama-cpp/
 model/
-
-# Test images (optional - you can include if small)
-# test.jpg
-# thu.webp

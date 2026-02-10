@@ -1,6 +1,0 @@
-python3 -m vllm.entrypoints.openai.api_server \
-  --model Qwen/Qwen2-VL-7B-Instruct-AWQ \
-  --quantization awq \
-  --gpu-memory-utilization 0.85 \
-  --max-model-len 2048 \
-  --port 8000

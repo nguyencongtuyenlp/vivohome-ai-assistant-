@@ -1,114 +1,125 @@
 """
-VIVOHOME - Query Parser
-Phân tích intent từ user query (rule-based, no LLM)
+VIVOHOME AI - Query Parser
+Rule-based intent detection from user queries (Vietnamese + English).
 """
 
 import re
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-# === INTENT PATTERNS ===
-INTENT_PATTERNS = {
-    'highest_price': [
-        r'giá cao nhất',
-        r'đắt nhất',
-        r'cao nhất',
-        r'mắc nhất',
-        r'price.*high',
-        r'most expensive'
+
+# ---------------------------------------------------------------------------
+# Data classes
+# ---------------------------------------------------------------------------
+
+@dataclass
+class QueryIntent:
+    """Structured result from query parsing."""
+    intent: str = "search"           # highest_price | lowest_price | compare | search
+    category: Optional[str] = None   # TV, Tủ lạnh, Máy giặt, ...
+    brands: Optional[List[str]] = None
+    original_query: str = ""
+
+    def to_dict(self) -> Dict:
+        return {
+            "intent": self.intent,
+            "category": self.category,
+            "brands": self.brands,
+            "original_query": self.original_query,
+        }
+
+
+# ---------------------------------------------------------------------------
+# Pattern definitions
+# ---------------------------------------------------------------------------
+
+INTENT_PATTERNS: Dict[str, List[str]] = {
+    "highest_price": [
+        r"giá cao nhất", r"đắt nhất", r"cao nhất",
+        r"mắc nhất", r"premium", r"cao cấp nhất",
+        r"price.*high", r"most expensive",
     ],
-    'lowest_price': [
-        r'giá rẻ nhất',
-        r'rẻ nhất',
-        r'thấp nhất',
-        r'price.*low',
-        r'cheapest'
+    "lowest_price": [
+        r"giá rẻ nhất", r"rẻ nhất", r"thấp nhất",
+        r"tiết kiệm nhất", r"bình dân",
+        r"price.*low", r"cheapest",
     ],
-    'compare': [
-        r'so sánh',
-        r'khác gì',
-        r'compare',
-        r'versus',
-        r'vs'
-    ]
+    "compare": [
+        r"so sánh", r"khác gì", r"nên mua",
+        r"compare", r"versus", r"\bvs\b",
+    ],
 }
 
-# === CATEGORY PATTERNS ===
-CATEGORY_PATTERNS = {
-    'TV': [r'\btv\b', r'tivi', r'ti vi', r'television', r'tele'],
-    'Tủ lạnh': [r'tủ lạnh', r'tu lanh', r'fridge', r'refrigerator'],
-    'Máy lọc nước': [r'máy lọc nước', r'may loc nuoc', r'water filter'],
-    'Bàn là': [r'bàn là', r'ban la', r'iron'],
-    'Bình tắm': [r'bình tắm', r'binh tam', r'water heater', r'nước nóng'],
-    'Bếp': [r'\bbếp\b', r'\bbep\b', r'stove', r'cooker'],
-    'Nồi': [r'\bnồi\b', r'\bnoi\b', r'pot', r'cooker'],
-    'Máy giặt': [r'máy giặt', r'may giat', r'washing machine'],
-    'Máy hút ẩm': [r'máy hút ẩm', r'may hut am', r'dehumidifier']
+CATEGORY_PATTERNS: Dict[str, List[str]] = {
+    "TV":              [r"\btv\b", r"tivi", r"ti vi", r"television", r"tele"],
+    "Tủ lạnh":         [r"tủ lạnh", r"tu lanh", r"tủ mát", r"fridge", r"refrigerator"],
+    "Tủ đông":         [r"tủ đông", r"tu dong", r"freezer"],
+    "Máy lọc nước":    [r"máy lọc nước", r"may loc nuoc", r"lọc nước", r"water filter"],
+    "Bàn là":          [r"bàn là", r"ban la", r"bàn ủi", r"iron"],
+    "Bình tắm":        [r"bình tắm", r"binh tam", r"nước nóng", r"water heater"],
+    "Bếp":             [r"\bbếp\b", r"\bbep\b", r"stove", r"cooker", r"bếp từ", r"bếp gas"],
+    "Nồi":             [r"\bnồi\b", r"\bnoi\b", r"nồi cơm", r"pot"],
+    "Máy giặt":        [r"máy giặt", r"may giat", r"washing machine"],
+    "Máy hút ẩm":      [r"máy hút ẩm", r"may hut am", r"dehumidifier"],
+    "Điều hòa":        [r"điều hòa", r"dieu hoa", r"máy lạnh", r"air con"],
+    "Quạt":            [r"\bquạt\b", r"\bquat\b", r"fan"],
 }
 
-# === BRAND PATTERNS ===
-BRAND_PATTERNS = {
-    'Samsung': [r'samsung', r'sam sung'],
-    'LG': [r'\blg\b'],
-    'Rossi': [r'rossi'],
-    'Sunhouse': [r'sunhouse', r'sun house'],
-    'Hòa Phát': [r'hòa phát', r'hoa phat'],
-    'Korichi': [r'korichi'],
-    'Karofi': [r'karofi']
+BRAND_PATTERNS: Dict[str, List[str]] = {
+    "Samsung":   [r"samsung", r"sam sung"],
+    "LG":        [r"\blg\b"],
+    "Panasonic": [r"panasonic"],
+    "Toshiba":   [r"toshiba"],
+    "Rossi":     [r"rossi"],
+    "Sunhouse":  [r"sunhouse", r"sun house"],
+    "Hòa Phát":  [r"hòa phát", r"hoa phat", r"hoà phát"],
+    "Korichi":   [r"korichi"],
+    "Karofi":    [r"karofi"],
+    "Kangaroo":  [r"kangaroo"],
 }
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 
 def parse_query(query: str) -> Dict:
     """
-    Phân tích query để trích xuất intent, category, brands
-    
-    Returns:
-        {
-            'intent': 'highest_price' | 'lowest_price' | 'compare' | 'search',
-            'category': str | None,
-            'brands': List[str] | None,
-            'original_query': str
-        }
+    Parse a user query to extract intent, category, and brands.
+
+    Returns a dict (not QueryIntent) for backward compatibility with
+    existing callers.
     """
-    query_lower = query.lower()
-    
-    result = {
-        'intent': 'search',  # Default
-        'category': None,
-        'brands': None,
-        'original_query': query
-    }
-    
+    q = query.lower()
+    result = QueryIntent(original_query=query)
+
     # Detect intent
     for intent_type, patterns in INTENT_PATTERNS.items():
-        for pattern in patterns:
-            if re.search(pattern, query_lower):
-                result['intent'] = intent_type
-                break
-        if result['intent'] != 'search':
+        if any(re.search(p, q) for p in patterns):
+            result.intent = intent_type
             break
-    
+
     # Detect category
     for category, patterns in CATEGORY_PATTERNS.items():
-        for pattern in patterns:
-            if re.search(pattern, query_lower):
-                result['category'] = category
-                break
-        if result['category']:
+        if any(re.search(p, q) for p in patterns):
+            result.category = category
             break
-    
-    # Detect brands (for comparison)
-    detected_brands = []
-    for brand, patterns in BRAND_PATTERNS.items():
-        for pattern in patterns:
-            if re.search(pattern, query_lower):
-                detected_brands.append(brand)
-                break
-    
-    if detected_brands:
-        result['brands'] = detected_brands
-    
-    return result
 
-# === TEST ===
+    # Detect brands
+    detected = [
+        brand for brand, patterns in BRAND_PATTERNS.items()
+        if any(re.search(p, q) for p in patterns)
+    ]
+    if detected:
+        result.brands = detected
+
+    return result.to_dict()
+
+
+# ---------------------------------------------------------------------------
+# CLI test
+# ---------------------------------------------------------------------------
+
 if __name__ == "__main__":
     test_queries = [
         "TV giá cao nhất",
@@ -116,16 +127,18 @@ if __name__ == "__main__":
         "Máy lọc nước Hòa Phát",
         "So sánh TV Samsung và LG",
         "có những loại tv nào",
-        "bàn là giá bao nhiêu"
+        "bàn là giá bao nhiêu",
+        "điều hòa Panasonic",
+        "quạt Sunhouse",
     ]
-    
+
     print("=" * 60)
     print("QUERY PARSER TEST")
     print("=" * 60)
-    
-    for query in test_queries:
-        result = parse_query(query)
-        print(f"\nQuery: '{query}'")
-        print(f"  Intent: {result['intent']}")
-        print(f"  Category: {result['category']}")
-        print(f"  Brands: {result['brands']}")
+
+    for q in test_queries:
+        r = parse_query(q)
+        print(f"\n  Query:    '{q}'")
+        print(f"  Intent:   {r['intent']}")
+        print(f"  Category: {r['category']}")
+        print(f"  Brands:   {r['brands']}")

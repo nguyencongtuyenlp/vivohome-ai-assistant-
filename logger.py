@@ -1,35 +1,49 @@
 """
-VIVOHOME - Logging Configuration
-Centralized logging cho toàn bộ hệ thống
+VIVOHOME AI - Logging Configuration
+Centralized logging with rotating file handler.
 """
 
 import logging
 import os
-from datetime import datetime
+from logging.handlers import RotatingFileHandler
+from config import LOG_DIR
 
-# Tạo thư mục logs nếu chưa có
-LOG_DIR = "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
 
-# Tạo log file với timestamp
-LOG_FILE = os.path.join(LOG_DIR, f"vivohome_{datetime.now().strftime('%Y%m%d')}.log")
+_LOG_FORMAT = "%(asctime)s | %(name)-12s | %(levelname)-8s | %(message)s"
+_LOG_FILE = os.path.join(LOG_DIR, "vivohome.log")
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s | %(name)s | %(levelname)s | %(message)s',
-    handlers=[
-        logging.FileHandler(LOG_FILE, encoding='utf-8'),
-        logging.StreamHandler()  # Cũng in ra console
-    ]
-)
 
-# Tạo loggers cho từng module
-def get_logger(name: str):
-    """Lấy logger cho module"""
+def _setup_root_logger() -> None:
+    """Configure root logger once at import time."""
+    root = logging.getLogger()
+    if root.handlers:
+        return  # Already configured
+
+    root.setLevel(logging.INFO)
+
+    # File handler with rotation (max 5MB, keep 3 backups)
+    file_handler = RotatingFileHandler(
+        _LOG_FILE, maxBytes=5 * 1024 * 1024, backupCount=3, encoding="utf-8"
+    )
+    file_handler.setFormatter(logging.Formatter(_LOG_FORMAT))
+    root.addHandler(file_handler)
+
+    # Console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(logging.Formatter(_LOG_FORMAT))
+    root.addHandler(console_handler)
+
+
+_setup_root_logger()
+
+
+def get_logger(name: str) -> logging.Logger:
+    """Get a named logger for a module."""
     return logging.getLogger(name)
 
-# Export
+
+# Pre-created loggers for convenience
 app_logger = get_logger("app")
-tools_logger = get_logger("tools")
 db_logger = get_logger("database")
+rag_logger = get_logger("rag")

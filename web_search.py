@@ -1,136 +1,107 @@
 """
-VIVOHOME AI - Web Search with Tavily
-Fallback search when product not found in database
+VIVOHOME AI - Web Search (Tavily API)
+Fallback search when products are not found in the local database.
 """
 
 import requests
-from logger import app_logger
+from typing import Dict, List
 
-# Tavily API Configuration
-TAVILY_API_KEY = "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"
-TAVILY_SEARCH_URL = "https://api.tavily.com/search"
+from config import TAVILY_API_KEY, TAVILY_SEARCH_URL, WEB_SEARCH_TIMEOUT
+from logger import get_logger
 
-def web_search(query: str, max_results: int = 3):
+logger = get_logger("web_search")
+
+
+def web_search(query: str, max_results: int = 3) -> Dict:
     """
-    Search the web using Tavily API
-    
+    Search the web using Tavily API.
+
     Args:
-        query: Search query
-        max_results: Maximum results to return
-        
+        query: Natural-language search query.
+        max_results: Maximum number of results to return.
+
     Returns:
-        Search results with title, content, and URL
+        {"found": bool, "count": int, "results": [...]}
     """
     try:
-        app_logger.info(f"🌐 Web search: {query}")
-        
-        # Prepare request
+        logger.info("Web search: '%s'", query[:80])
+
         payload = {
             "api_key": TAVILY_API_KEY,
-            "query": f"VIVOHOME {query} giá",  # Add context for product search
+            "query": f"{query} giá",
             "search_depth": "basic",
             "include_answer": True,
             "include_images": False,
-            "max_results": max_results
+            "max_results": max_results,
         }
-        
-        # Make request
+
         response = requests.post(
-            TAVILY_SEARCH_URL,
-            json=payload,
-            timeout=10
+            TAVILY_SEARCH_URL, json=payload, timeout=WEB_SEARCH_TIMEOUT
         )
-        
+
         if response.status_code != 200:
-            app_logger.warning(f"⚠️ Tavily API error: {response.status_code}")
+            logger.warning("Tavily API error: HTTP %d", response.status_code)
             return {"found": False, "error": f"API error: {response.status_code}"}
-        
+
         data = response.json()
-        
-        # Extract results
-        results = []
-        
-        # Add AI answer if available
+        results: List[Dict] = []
+
+        # AI-generated answer
         if data.get("answer"):
             results.append({
                 "type": "answer",
                 "content": data["answer"],
-                "source": "tavily_ai"
+                "source": "tavily_ai",
             })
-        
-        # Add search results
+
+        # Individual search results
         for item in data.get("results", [])[:max_results]:
             results.append({
                 "type": "web_result",
                 "title": item.get("title", ""),
-                "content": item.get("content", "")[:300],  # Limit content length
+                "content": item.get("content", "")[:300],
                 "url": item.get("url", ""),
-                "source": "web_search"
+                "source": "web_search",
             })
-        
-        app_logger.info(f"✅ Web search found {len(results)} results")
-        return {
-            "found": len(results) > 0,
-            "count": len(results),
-            "results": results
-        }
-        
+
+        logger.info("Web search found %d results", len(results))
+        return {"found": len(results) > 0, "count": len(results), "results": results}
+
     except requests.exceptions.Timeout:
-        app_logger.warning("⚠️ Web search timeout")
+        logger.warning("Web search timed out after %ds", WEB_SEARCH_TIMEOUT)
         return {"found": False, "error": "Search timeout"}
-    except Exception as e:
-        app_logger.error(f"❌ Web search error: {e}")
-        return {"found": False, "error": str(e)}
+    except Exception as exc:
+        logger.error("Web search error: %s", exc)
+        return {"found": False, "error": str(exc)}
 
-def search_product_info(product_name: str):
-    """
-    Search for specific product information
-    
-    Args:
-        product_name: Name of the product to search
-        
-    Returns:
-        Product information from web
-    """
-    query = f"{product_name} giá bán thông số kỹ thuật"
-    return web_search(query, max_results=3)
 
-def search_price_comparison(product_name: str):
-    """
-    Search for price comparison
-    
-    Args:
-        product_name: Product to compare prices
-        
-    Returns:
-        Price information from different sources
-    """
-    query = f"{product_name} so sánh giá mua ở đâu"
-    return web_search(query, max_results=5)
+def search_product_info(product_name: str) -> Dict:
+    """Search for detailed product specifications and pricing."""
+    return web_search(f"{product_name} giá bán thông số kỹ thuật", max_results=3)
 
-# Test
+
+def search_price_comparison(product_name: str) -> Dict:
+    """Search for price comparison across retailers."""
+    return web_search(f"{product_name} so sánh giá mua ở đâu", max_results=5)
+
+
+# ---------------------------------------------------------------------------
+# CLI test
+# ---------------------------------------------------------------------------
+
 if __name__ == "__main__":
     print("=" * 50)
-    print("🌐 VIVOHOME AI - Web Search Test")
+    print("VIVOHOME AI - Web Search Test")
     print("=" * 50)
-    
-    # Test queries
-    test_queries = [
-        "tủ lạnh Samsung inverter",
-        "máy giặt LG 9kg",
-        "điều hòa Daikin 1HP"
-    ]
-    
-    for query in test_queries:
-        print(f"\n📝 Query: '{query}'")
-        result = web_search(query)
-        
+
+    for q in ["tủ lạnh Samsung inverter", "iPhone 15 Pro Max giá"]:
+        print(f"\nQuery: '{q}'")
+        result = web_search(q)
         if result.get("found"):
-            print(f"   Found {result['count']} results:")
             for r in result["results"]:
                 if r["type"] == "answer":
-                    print(f"   💡 AI Answer: {r['content'][:100]}...")
+                    print(f"  AI: {r['content'][:100]}...")
                 else:
-                    print(f"   🔗 {r['title'][:50]}...")
+                    print(f"  🔗 {r['title'][:60]}")
         else:
-            print(f"   ❌ No results: {result.get('error', 'Unknown')}")
+            print(f"  No results: {result.get('error')}")
