@@ -114,7 +114,10 @@ def _parse_price(raw) -> int:
     if pd.isna(raw):
         return 0
     try:
-        return int(float(str(raw).replace(",", "").replace(".", "")))
+        # Convert to float first (handles '250000.0'), then to int
+        # Only strip commas (thousands separator), NOT dots (decimal point)
+        cleaned = str(raw).replace(",", "")
+        return int(float(cleaned))
     except (ValueError, TypeError):
         return 0
 
@@ -235,7 +238,7 @@ def search_with_intent(query: str, intent: Dict, max_results: int = 3) -> Dict:
 # Private helpers
 # ---------------------------------------------------------------------------
 
-_TV_KEYWORDS = ("tv", "tivi", "ti vi", "tele", "samsung", "sam sung", "lg")
+_TV_KEYWORDS = ("tv", "tivi", "ti vi", "tele", "television")
 
 
 def _filter_by_category(rows: List, category: str) -> List:

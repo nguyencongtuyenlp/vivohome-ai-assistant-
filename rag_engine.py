@@ -42,27 +42,35 @@ class RAGEngine:
         logger.info("RAG search: '%s'", query[:80])
 
         intent = parse_query(query)
-        logger.info("  Intent=%s  Category=%s", intent["intent"], intent["category"])
+        logger.info("  Intent=%s  Category=%s  Brands=%s",
+                     intent["intent"], intent["category"], intent.get("brands"))
 
         results: List[Dict] = []
         sources: List[str] = []
 
-        # 1. Semantic search
-        if self.use_semantic:
-            results, sources = self._semantic_search(query, max_results)
+        # Strategy: if intent has category/brands/compare → DB first, semantic fallback
+        #           if generic query → semantic first, DB fallback
+        use_db_first = (
+            intent["intent"] in ("compare", "highest_price", "lowest_price")
+            or intent.get("category")
+            or intent.get("brands")
+        )
 
-        # 2. Intent-based DB search (fallback)
-        if not results and intent.get("category"):
-            db_result = search_with_intent(query, intent, max_results)
-            if db_result.get("found"):
-                for p in db_result["products"]:
-                    p["source"] = "database"
-                    p.setdefault("similarity", 0.8)
-                    results.append(p)
-                sources.append("database")
-                logger.info("  Database: %d results", db_result["count"])
+        if use_db_first:
+            # 1a. Database search (structured, precise)
+            results, sources = self._database_search(query, intent, max_results)
+            # 1b. Semantic fallback if DB found nothing
+            if not results and self.use_semantic:
+                results, sources = self._semantic_search(query, max_results)
+        else:
+            # 1a. Semantic search (flexible, meaning-based)
+            if self.use_semantic:
+                results, sources = self._semantic_search(query, max_results)
+            # 1b. Database fallback
+            if not results:
+                results, sources = self._database_search(query, intent, max_results)
 
-        # 3. Web fallback
+        # 2. Web fallback
         web_results = None
         if not results and self.use_web_fallback:
             logger.info("  No local results — trying web search...")
@@ -79,6 +87,17 @@ class RAGEngine:
             "web_results": web_results,
             "sources": sources,
         }
+
+    def _database_search(self, query: str, intent: Dict, max_results: int):
+        """Run intent-based database search."""
+        db_result = search_with_intent(query, intent, max_results)
+        if db_result.get("found"):
+            for p in db_result["products"]:
+                p["source"] = "database"
+                p.setdefault("similarity", 0.8)
+            logger.info("  Database: %d results", db_result["count"])
+            return db_result["products"], ["database"]
+        return [], []
 
     def _semantic_search(self, query: str, max_results: int):
         """Run semantic search with threshold filtering."""
