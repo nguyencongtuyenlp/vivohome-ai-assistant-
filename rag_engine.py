@@ -49,7 +49,7 @@ class RAGEngine:
         sources: List[str] = []
 
         # Strategy: if intent has category/brands/compare → DB first, semantic fallback
-        #           if generic query → semantic first, DB fallback
+        #           if generic query → keyword check first, web fallback if not found
         use_db_first = (
             intent["intent"] in ("compare", "highest_price", "lowest_price")
             or intent.get("category")
@@ -63,17 +63,24 @@ class RAGEngine:
             if not results and self.use_semantic:
                 results, sources = self._semantic_search(query, max_results)
         else:
-            # 1a. Semantic search (flexible, meaning-based)
-            if self.use_semantic:
-                results, sources = self._semantic_search(query, max_results)
-            # 1b. Database fallback
-            if not results:
-                results, sources = self._database_search(query, intent, max_results)
+            # Generic query — check if product exists in DB first
+            from database import search_by_keywords
+            keyword_check = search_by_keywords(query, max_results=1)
+
+            if keyword_check.get("found"):
+                # Keywords matched → use semantic for better ranking
+                if self.use_semantic:
+                    results, sources = self._semantic_search(query, max_results)
+                if not results:
+                    results, sources = self._database_search(query, intent, max_results)
+            else:
+                # No keyword match → product likely NOT in catalog → web search
+                logger.info("  No keyword match in DB → skipping to web search")
 
         # 2. Web fallback
         web_results = None
         if not results and self.use_web_fallback:
-            logger.info("  No local results — trying web search...")
+            logger.info("  Trying web search...")
             web_result = web_search(query, max_results=3)
             if web_result.get("found"):
                 web_results = web_result["results"]
