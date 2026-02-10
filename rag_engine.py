@@ -63,19 +63,13 @@ class RAGEngine:
             if not results and self.use_semantic:
                 results, sources = self._semantic_search(query, max_results)
         else:
-            # Generic query — check if product exists in DB first
-            from database import search_by_keywords
-            keyword_check = search_by_keywords(query, max_results=1)
-
-            if keyword_check.get("found"):
-                # Keywords matched → use semantic for better ranking
-                if self.use_semantic:
-                    results, sources = self._semantic_search(query, max_results)
-                if not results:
-                    results, sources = self._database_search(query, intent, max_results)
-            else:
-                # No keyword match → product likely NOT in catalog → web search
-                logger.info("  No keyword match in DB → skipping to web search")
+            # Generic query (no category/brand/intent)
+            # Try semantic search — if nothing good, go straight to web
+            # Do NOT fall back to DB (stop words like "giá" match everything)
+            if self.use_semantic:
+                results, sources = self._semantic_search(query, max_results)
+            if not results:
+                logger.info("  Generic query, no good semantic match → web fallback")
 
         # 2. Web fallback
         web_results = None
