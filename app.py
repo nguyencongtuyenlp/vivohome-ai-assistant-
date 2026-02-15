@@ -100,36 +100,77 @@ def _handle_text(user_text: str) -> str:
 # ---------------------------------------------------------------------------
 
 CUSTOM_CSS = """
-#chatbot {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 15px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-.message-wrap {
-    background: rgba(255, 255, 255, 0.95) !important;
-    border-radius: 12px !important;
-    padding: 12px !important;
-    margin: 8px 0 !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
-}
-.bot .message-wrap {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    color: white !important;
-}
-.user .message-wrap {
-    background: #f8f9fa !important;
-}
+/* Main container */
 .contain {
-    max-width: 1200px !important;
-    margin: auto !important;
+    max-width: 1100px !important;
+    margin: 0 auto !important;
 }
-h1 {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 800 !important;
-    font-size: 2.5em !important;
-    text-align: center !important;
+
+/* Header styling */
+.gradio-container h1 {
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    color: #1a1a1a !important;
+    margin-bottom: 0.5rem !important;
+}
+
+/* Chatbot area */
+#chatbot {
+    border-radius: 12px !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
+}
+
+/* Message bubbles */
+.message-wrap {
+    padding: 14px 16px !important;
+    margin: 6px 0 !important;
+    border-radius: 10px !important;
+}
+
+.user .message-wrap {
+    background: #f3f4f6 !important;
+    border: 1px solid #e5e7eb !important;
+}
+
+.bot .message-wrap {
+    background: #ffffff !important;
+    border: 1px solid #d1d5db !important;
+}
+
+/* Input box */
+.multimodal-textbox {
+    border-radius: 10px !important;
+    border: 1.5px solid #d1d5db !important;
+}
+
+.multimodal-textbox:focus-within {
+    border-color: #0ea5e9 !important;
+    box-shadow: 0 0 0 3px rgba(14,165,233,0.1) !important;
+}
+
+/* Buttons */
+button {
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+}
+
+button[variant="primary"] {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+    border: none !important;
+}
+
+button[variant="secondary"] {
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+    border: 1px solid #d1d5db !important;
+}
+
+/* Examples section */
+.examples {
+    border-radius: 8px !important;
+    border: 1px solid #e5e7eb !important;
+    padding: 12px !important;
 }
 """
 
@@ -137,70 +178,69 @@ h1 {
 def _build_ui() -> gr.Blocks:
     """Build the Gradio Blocks interface."""
     with gr.Blocks(
-        theme=gr.themes.Soft(
-            primary_hue="purple",
+        theme=gr.themes.Default(
+            primary_hue="cyan",
             secondary_hue="blue",
-            neutral_hue="slate",
+            neutral_hue="gray",
             font=gr.themes.GoogleFont("Inter"),
         ),
         css=CUSTOM_CSS,
         title=f"{APP_NAME} v{APP_VERSION}",
     ) as demo:
-        gr.Markdown(f"# 🏢 {APP_NAME}\n### Trợ lý mua sắm thông minh với Vision AI")
+        # Header
         gr.Markdown(
-            '<div style="text-align:center;color:#555;">'
-            "🧠 <b>Intent Detection</b> • 🔍 <b>Semantic Search</b> • "
-            "📷 <b>Vision-RAG</b> • 🌐 <b>Web Fallback</b>"
-            "</div>"
+            f"# 🏠 {APP_NAME}\n"
+            f"<p style='font-size:1.1rem;color:#6b7280;margin-top:-10px;'>Trợ lý mua sắm thông minh với Vision AI</p>",
+            elem_classes="header"
         )
 
+        # Chatbot
         chatbot = gr.Chatbot(
-            label="💬 Chat",
-            height=500,
+            height=480,
             show_label=False,
             elem_id="chatbot",
+            avatar_images=(None, "🤖"),
         )
 
+        # Input area
         with gr.Row():
-            with gr.Column(scale=4):
-                msg = gr.MultimodalTextbox(
-                    placeholder="💬 Hỏi về sản phẩm hoặc 📷 upload ảnh tem nhãn...",
-                    file_types=["image"],
-                    show_label=False,
-                    submit_btn="Gửi",
-                    stop_btn="Dừng",
-                )
-            with gr.Column(scale=1):
-                clear = gr.Button("🗑️ Xóa lịch sử", variant="secondary")
+            msg = gr.MultimodalTextbox(
+                placeholder="Nhập câu hỏi hoặc upload ảnh sản phẩm...",
+                file_types=["image"],
+                show_label=False,
+                submit_btn="Gửi",
+                scale=5,
+            )
+            clear = gr.Button("🗑️ Xóa", variant="secondary", scale=1, size="sm")
 
-        gr.Markdown("### 💡 Ví dụ câu hỏi:")
-        with gr.Row():
-            with gr.Column():
-                gr.Examples(
-                    examples=[
-                        {"text": "TV giá cao nhất", "files": []},
-                        {"text": "Tủ lạnh rẻ nhất", "files": []},
-                        {"text": "So sánh TV Samsung và LG", "files": []},
-                    ],
-                    inputs=msg,
-                    label="🎯 Intent Detection",
-                )
-            with gr.Column():
-                gr.Examples(
-                    examples=[
-                        {"text": "Máy lọc nước Hòa Phát", "files": []},
-                        {"text": "Bình tắm Rossi 15 lít", "files": []},
-                        {"text": "có những loại tivi nào", "files": []},
-                    ],
-                    inputs=msg,
-                    label="🔍 Smart Search",
-                )
+        # Examples
+        with gr.Accordion("💡 Ví dụ câu hỏi", open=False):
+            with gr.Row():
+                with gr.Column():
+                    gr.Examples(
+                        examples=[
+                            {"text": "TV giá cao nhất", "files": []},
+                            {"text": "Tủ lạnh rẻ nhất", "files": []},
+                            {"text": "So sánh TV Samsung và LG", "files": []},
+                        ],
+                        inputs=msg,
+                        label="🎯 Intent Detection",
+                    )
+                with gr.Column():
+                    gr.Examples(
+                        examples=[
+                            {"text": "Máy lọc nước Hòa Phát", "files": []},
+                            {"text": "máy giặt tiết kiệm điện", "files": []},
+                            {"text": "có những loại tivi nào", "files": []},
+                        ],
+                        inputs=msg,
+                        label="🔍 Smart Search",
+                    )
 
+        # Footer
         gr.Markdown(
-            "---\n"
-            f"<div style='text-align:center;color:#888;font-size:0.9em;'>"
-            f"⚡ <b>{APP_NAME}</b> v{APP_VERSION} — "
-            f"Powered by Qwen2-VL • ChromaDB • Tavily • Gradio</div>"
+            f"<p style='text-align:center;color:#9ca3af;font-size:0.85rem;margin-top:20px;'>"
+            f"Powered by Qwen2-VL • ChromaDB • Tavily</p>"
         )
 
         def respond(message, chat_history):
