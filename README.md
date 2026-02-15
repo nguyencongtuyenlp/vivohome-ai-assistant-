@@ -371,7 +371,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Developer**: Nguyễn Công Tuyền
 **Email**: nguyencongtuyenlp@gmail.com  
-**LinkedIn**: [linkedin.com/in/yourprofile](https://linkedin.com/in/yourprofile)  
+**LinkedIn**: [linkedin.com/in/nguyencongtuyenlp](https://linkedin.com/in/nguyencongtuyenlp)  
 **GitHub**: [@nguyencongtuyenlp](https://github.com/nguyencongtuyenlp)
 
 ---
