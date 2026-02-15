@@ -9,7 +9,7 @@ from typing import Dict, Any
 
 import requests
 
-from config import VLLM_URL, VISION_MODEL, VLLM_TIMEOUT
+from app_config import VLLM_URL, VISION_MODEL, VLLM_TIMEOUT
 from database import search_by_model, search_by_keywords
 from logger import get_logger
 

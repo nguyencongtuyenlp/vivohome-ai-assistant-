@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 
 import pandas as pd
 
-from config import DB_PATH, CSV_PATH
+from app_config import DB_PATH, CSV_PATH
 from logger import db_logger
 
 

@@ -5,7 +5,7 @@ Semantic search for products using multilingual sentence embeddings.
 
 from typing import Dict, List, Optional
 
-from config import CHROMA_PATH, DB_PATH, EMBEDDING_MODEL
+from app_config import CHROMA_PATH, DB_PATH, EMBEDDING_MODEL
 from logger import get_logger
 
 logger = get_logger("vector_store")

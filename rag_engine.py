@@ -5,7 +5,7 @@ Orchestrates: Intent Parsing → Semantic Search → Database Search → Web Fal
 
 from typing import Dict, List, Optional
 
-from config import SIMILARITY_THRESHOLD, MAX_SEARCH_RESULTS
+from app_config import SIMILARITY_THRESHOLD, MAX_SEARCH_RESULTS
 from query_parser import parse_query
 from database import search_with_intent
 from vector_store import semantic_search

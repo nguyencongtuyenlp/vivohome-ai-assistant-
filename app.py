@@ -5,7 +5,7 @@ Premium shopping assistant UI with multimodal input (text + image).
 
 import gradio as gr
 
-from config import APP_NAME, APP_VERSION, SHARE_LINK
+from app_config import APP_NAME, APP_VERSION, SHARE_LINK
 from tools import lookup_product, extract_model, describe_image
 from query_parser import parse_query
 from database import search_with_intent

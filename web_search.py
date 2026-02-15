@@ -6,7 +6,7 @@ Fallback search when products are not found in the local database.
 import requests
 from typing import Dict, List
 
-from config import TAVILY_API_KEY, TAVILY_SEARCH_URL, WEB_SEARCH_TIMEOUT
+from app_config import TAVILY_API_KEY, TAVILY_SEARCH_URL, WEB_SEARCH_TIMEOUT
 from logger import get_logger
 
 logger = get_logger("web_search")

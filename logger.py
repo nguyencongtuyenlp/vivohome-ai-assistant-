@@ -6,7 +6,7 @@ Centralized logging with rotating file handler.
 import logging
 import os
 from logging.handlers import RotatingFileHandler
-from config import LOG_DIR
+from app_config import LOG_DIR
 
 os.makedirs(LOG_DIR, exist_ok=True)
 
