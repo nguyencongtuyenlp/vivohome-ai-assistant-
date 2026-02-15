@@ -1,4 +1,4 @@
-# 🏢 VIVOHOME AI Assistant
+# 🏠 VIVOHOME AI Assistant
 
 <div align="center">
 
@@ -6,25 +6,77 @@
 ![Gradio](https://img.shields.io/badge/Gradio-6.0-orange.svg)
 ![vLLM](https://img.shields.io/badge/vLLM-0.6.0-green.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Tests](https://img.shields.io/badge/Tests-17%2F19%20Passing-brightgreen.svg)
 
-**Multimodal AI Shopping Assistant powered by Vision-Language Models**
+**Multimodal AI Shopping Assistant with Vision-RAG, Intent Detection & Web Search**
 
-[Features](#-features) • [Demo](#-demo) • [Installation](#-installation) • [Usage](#-usage) • [Architecture](#-architecture) • [Documentation](#-documentation)
+[Features](#-features) • [Demo](#-demo) • [Installation](#-installation) • [Usage](#-usage) • [Architecture](#-architecture)
 
 </div>
 
 ---
 
+## 🎬 Demo Video
+
+https://github.com/user-attachments/assets/YOUR-VIDEO-ID-HERE
+
+> **📹 Full demo:** Intent Detection • Smart Search • Vision AI • Web Fallback
+
+---
+
+## 📸 Screenshots
+
+### Main Interface
+![Hero Screenshot](docs/screenshots/hero.png)
+
+### Key Features
+
+<table>
+<tr>
+<td width="50%">
+
+**🎯 Intent Detection**
+![Intent Detection](docs/screenshots/intent-detection.png)
+*Compare products across brands*
+
+</td>
+<td width="50%">
+
+**📷 Vision AI**
+![Vision AI](docs/screenshots/vision-ai.png)
+*Extract model from product labels*
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**🌐 Web Search Fallback**
+![Web Search](docs/screenshots/web-search.png)
+*Search beyond catalog*
+
+</td>
+<td width="50%">
+
+**🎨 Modern UI**
+![UI Features](docs/screenshots/ui-features.png)
+*Clean, professional interface*
+
+</td>
+</tr>
+</table>
+
+---
+
 ## 📖 Overview
 
-VIVOHOME AI is an intelligent shopping assistant that combines **Vision-RAG** and **Intent Detection** to help customers find products and prices through natural language queries or product images. Built with Qwen2-VL-7B and optimized for production deployment.
+VIVOHOME AI is an intelligent shopping assistant that combines **Vision-RAG**, **Intent Detection**, and **Web Search** to help customers find products through natural language queries or product images. Built with Qwen2-VL-7B and optimized for production deployment.
 
 ### 🎯 Key Capabilities
 
-- **🧠 Intent Detection**: Understands queries like "TV giá cao nhất", "Tủ lạnh rẻ nhất"
-- **🔍 Smart Search**: Vietnamese-aware keyword matching with scoring
-- **📷 Vision-RAG**: Extract product model from images → Instant price lookup
+- **🧠 Intent Detection**: Understands "TV giá cao nhất", "So sánh Samsung và LG"
+- **🔍 Smart Search**: Vietnamese-aware semantic + keyword matching
+- **📷 Vision-RAG**: Extract model from images → Instant price lookup
+- **🌐 Web Fallback**: Searches web when product not in catalog
 - **💬 Multimodal Chat**: Text + Image input in one interface
 
 ---
@@ -35,49 +87,35 @@ VIVOHOME AI is an intelligent shopping assistant that combines **Vision-RAG** an
 ```python
 Query: "TV giá cao nhất"
 → Intent: highest_price, Category: TV
-→ Result: Samsung 75" (19,500,000 VND)
+→ Result: Samsung 75 DU8000 - 19,500,000 VND
 ```
 
-### 2. Vietnamese Language Support
+### 2. Multi-Brand Comparison
 ```python
-Query: "Tủ lạnh rẻ nhất"
-→ Handles: "tủ lạnh", "tu lanh", "fridge"
-→ Result: Toshiba RS696W1 (12,250,000 VND)
+Query: "So sánh TV Samsung và LG"
+→ Returns: Products from BOTH brands
+→ Source: database (structured search)
 ```
 
 ### 3. Vision-RAG Pipeline
 ```
-Image Upload → Qwen2-VL → Extract Model Code → Database Lookup → Price
+Image Upload → Qwen2-VL → Extract Model → Database Lookup → Price
+Example: Photo of label → "65 DU7700" → 13,000,000 VND
 ```
 
-### 4. Production-Ready
-- ✅ SQLite database with indexed search
-- ✅ Comprehensive logging
-- ✅ Unit tests (89% pass rate)
-- ✅ Docker containerization
-- ✅ GPU optimization (AWQ quantization)
-
----
-
-## 🚀 Demo
-
-### Live Demo
-🔗 **[Try it on Lightning AI](https://lightning.ai)** *(Replace with your actual link)*
-
-### Screenshots
-
-**Main Interface:**
-```
-🏢 VIVOHOME AI Assistant
-Trợ lý mua sắm thông minh với Vision AI
-
-🧠 Intent Detection • 🔍 Smart Search • 📷 Vision-RAG
+### 4. Web Search Fallback
+```python
+Query: "iPhone 15 Pro Max giá bao nhiêu"
+→ Not in catalog → Web search via Tavily API
+→ Returns: Latest prices from Vietnamese retailers
 ```
 
-**Example Queries:**
-- "TV giá cao nhất" → Returns most expensive TV
-- "Máy lọc nước Hòa Phát" → Finds Hòa Phát water filters
-- Upload product image → Extracts model & shows price
+### 5. Production-Ready
+- ✅ Centralized configuration (`app_config.py`)
+- ✅ SQLite + ChromaDB (vector search)
+- ✅ Comprehensive logging with rotation
+- ✅ Type hints across all modules
+- ✅ Clean, modern UI (Gradio 6.0)
 
 ---
 
@@ -86,11 +124,12 @@ Trợ lý mua sắm thông minh với Vision AI
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
 | **Vision AI** | Qwen2-VL-7B-AWQ | Image understanding & OCR |
+| **Vector Store** | ChromaDB | Semantic search |
+| **Web Search** | Tavily API | Out-of-catalog queries |
 | **Inference** | vLLM | GPU-optimized serving |
 | **Web UI** | Gradio 6.0 | Multimodal chat interface |
 | **Database** | SQLite | Product catalog |
-| **Intent Parser** | Regex-based | Query understanding |
-| **Deployment** | Docker + Compose | Containerization |
+| **Intent Parser** | Custom regex | Query understanding |
 
 ---
 
@@ -101,50 +140,31 @@ Trợ lý mua sắm thông minh với Vision AI
 - NVIDIA GPU with 15GB+ VRAM (for vLLM)
 - CUDA 12.1+
 
-### Option 1: Quick Start (Lightning AI)
+### Quick Start (Lightning AI)
 
 ```bash
-# Terminal 1: Start vLLM server
-python3 -m vllm.entrypoints.openai.api_server \
-  --model Qwen/Qwen2-VL-7B-Instruct-AWQ \
-  --quantization awq \
-  --gpu-memory-utilization 0.85 \
-  --max-model-len 2048 \
-  --port 8000
+# 1. Clone repository
+git clone https://github.com/nguyencongtuyenlp/vivohome-ai-assistant-.git
+cd vivohome-ai-assistant-
 
-# Terminal 2: Run Gradio app
-python3 database.py  # Initialize database
-python3 app.py       # Start web UI
-```
-
-### Option 2: Docker Deployment
-
-```bash
-# Clone repository
-git clone https://github.com/yourusername/vivohome-ai.git
-cd vivohome-ai
-
-# Start all services
-docker-compose up -d
-
-# Access at http://localhost:7860
-```
-
-See [DOCKER.md](DOCKER.md) for detailed deployment guide.
-
-### Option 3: Local Development
-
-```bash
-# Install dependencies
+# 2. Install dependencies
+pip install vllm numpy==1.26.4
 pip install -r requirements.txt
 
-# Initialize database
+# 3. Set environment variables
+export TAVILY_API_KEY="your-api-key-here"
+
+# 4. Initialize database
 python database.py
 
-# Run tests
-pytest test_unit.py -v
+# 5. Start vLLM server (Terminal 1)
+python -m vllm.entrypoints.openai.api_server \
+  --model Qwen/Qwen2-VL-7B-Instruct-AWQ \
+  --dtype float16 \
+  --max-model-len 4096 \
+  --port 8000
 
-# Start app (requires vLLM running)
+# 6. Start Gradio app (Terminal 2)
 python app.py
 ```
 
@@ -156,36 +176,33 @@ python app.py
 
 ```python
 # Intent-based queries
-"TV giá cao nhất"           # Highest price
-"Tủ lạnh rẻ nhất"          # Lowest price
-"So sánh TV Samsung và LG"  # Comparison
+"TV giá cao nhất"              # Highest price
+"Tủ lạnh rẻ nhất"             # Lowest price
+"So sánh TV Samsung và LG"     # Multi-brand comparison
 
-# Normal search
+# Category search
+"có những loại tivi nào"       # List all TVs
+"máy lọc nước có loại nào"    # List water filters
+
+# Brand + product search
 "Máy lọc nước Hòa Phát"
 "Bình tắm Rossi 15 lít"
+
+# Semantic search
+"máy giặt tiết kiệm điện"
+"tủ lạnh cho gia đình đông người"
+
+# Web search (out-of-catalog)
+"iPhone 15 Pro Max giá bao nhiêu"
+"laptop gaming tốt nhất 2024"
 ```
 
 ### Image Queries
 
-1. Click upload button
+1. Click 📎 upload button
 2. Select product label image
-3. Type: "Sản phẩm này giá bao nhiêu?"
+3. (Optional) Type: "Sản phẩm này giá bao nhiêu?"
 4. Get instant price lookup
-
-### API Usage (Advanced)
-
-```python
-from query_parser import parse_query
-from database import search_with_intent
-
-# Parse query
-intent = parse_query("TV giá cao nhất")
-# {'intent': 'highest_price', 'category': 'TV', 'brands': None}
-
-# Search with intent
-result = search_with_intent("TV giá cao nhất", intent)
-# {'found': True, 'count': 1, 'products': [...]}
-```
 
 ---
 
@@ -198,92 +215,57 @@ graph TB
     B -->|Image| D[Qwen2-VL Vision]
     
     C --> E[Intent Detection]
-    E --> F{Intent Type}
-    F -->|highest_price| G[Sort DESC]
-    F -->|lowest_price| H[Sort ASC]
-    F -->|compare| I[Multi-result]
-    F -->|search| J[Keyword Match]
+    E --> F{Has Category/Brand?}
+    F -->|Yes| G[Database Search]
+    F -->|No| H[Semantic Search]
     
-    D --> K[Extract Model]
-    K --> L[Database Lookup]
+    H --> I{Results Found?}
+    I -->|Yes| J[Return Results]
+    I -->|No| K[Web Search Fallback]
     
-    G --> M[SQLite Database]
-    H --> M
-    I --> M
-    J --> M
-    L --> M
+    D --> L[Extract Model]
+    L --> M[Database Lookup]
     
-    M --> N[Gradio UI]
-    N --> O[User Response]
+    G --> J
+    M --> J
+    K --> J
+    
+    J --> N[Format Response]
+    N --> O[Gradio UI]
 ```
 
 ### Data Flow
 
 1. **Input Processing**: Multimodal input (text/image) via Gradio
-2. **Intent Detection**: Rule-based parser extracts intent + category
-3. **Search Logic**: 
-   - Text → Intent-based filtering + sorting
-   - Image → Vision extraction → Model lookup
-4. **Database Query**: SQLite with Vietnamese text matching
-5. **Response Formatting**: Markdown with emojis + price formatting
-
----
-
-## 📊 Performance
-
-| Metric | Value |
-|--------|-------|
-| **Intent Detection** | < 1ms (regex-based) |
-| **Database Search** | < 100ms (50 products) |
-| **Vision Extraction** | ~2s (Qwen2-VL on T4) |
-| **Total Response Time** | < 3s (with image) |
-| **GPU Memory** | ~13GB (AWQ quantization) |
-| **Test Coverage** | 89% (17/19 tests passing) |
-
----
-
-## 🧪 Testing
-
-### Run Unit Tests
-
-```bash
-# All tests
-pytest test_unit.py -v
-
-# With coverage
-pytest test_unit.py --cov=. --cov-report=html
-
-# Specific test class
-pytest test_unit.py::TestQueryParser -v
-```
-
-### Test Coverage
-
-- ✅ Query Parser (5/5 tests)
-- ✅ Database Functions (3/5 tests)
-- ✅ Intent-Based Search (4/4 tests)
-- ✅ Integration Workflows (3/3 tests)
-- ✅ Performance Tests (2/2 tests)
+2. **Intent Detection**: Parse query → extract intent, category, brands
+3. **Search Strategy**:
+   - **Structured queries** (category/brand/intent) → Database first
+   - **Generic queries** → Semantic search → Web fallback if no match
+   - **Image queries** → Vision extraction → Model lookup
+4. **Response Formatting**: Markdown with emojis + price formatting
 
 ---
 
 ## 📁 Project Structure
 
 ```
-vivohome-ai/
+vivohome-ai-assistant-/
 ├── app.py                 # Gradio web interface
+├── app_config.py          # Centralized configuration
 ├── database.py            # SQLite database + search logic
 ├── query_parser.py        # Intent detection engine
-├── tools.py               # Vision AI + utility functions
-├── logger.py              # Centralized logging
-├── product.csv            # Product catalog (50 items)
-├── test_unit.py           # Unit tests (19 tests)
+├── rag_engine.py          # RAG pipeline orchestration
+├── vector_store.py        # ChromaDB semantic search
+├── web_search.py          # Tavily API integration
+├── tools.py               # Vision AI utilities
+├── logger.py              # Logging with rotation
+├── product.csv            # Product catalog
 ├── requirements.txt       # Python dependencies
-├── Dockerfile             # Docker image definition
-├── docker-compose.yml     # Multi-service orchestration
-├── start.sh               # Startup script
-├── DOCKER.md              # Deployment guide
-├── DEMO_SCRIPT.md         # Demo video script
+├── Dockerfile             # Docker image
+├── .env.example           # Environment variables template
+├── docs/
+│   ├── demo.mp4           # Demo video
+│   └── screenshots/       # UI screenshots
 └── README.md              # This file
 ```
 
@@ -291,26 +273,23 @@ vivohome-ai/
 
 ## 🔧 Configuration
 
-### Environment Variables
+Create `.env` file (see `.env.example`):
 
 ```bash
-# vLLM Server URL
-VLLM_URL=http://localhost:8000
+# vLLM Server
+VLLM_URL=http://127.0.0.1:8000/v1/chat/completions
+VISION_MODEL=Qwen/Qwen2-VL-7B-Instruct-AWQ
 
-# Database path
-DB_PATH=vivohome.db
+# Tavily Web Search
+TAVILY_API_KEY=your-api-key-here
 
-# Logging level
-LOG_LEVEL=INFO
-```
+# RAG Settings
+SIMILARITY_THRESHOLD=0.5
+MAX_SEARCH_RESULTS=5
 
-### Model Configuration
-
-Edit `tools.py`:
-```python
-VLLM_URL = "http://127.0.0.1:8000/v1/chat/completions"
-VISION_MODEL = "Qwen/Qwen2-VL-7B-Instruct-AWQ"
-REASONING_MODEL = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
+# App Settings
+GRADIO_PORT=7860
+SHARE_LINK=true
 ```
 
 ---
@@ -320,15 +299,13 @@ REASONING_MODEL = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
 ### Completed ✅
 - [x] Vision-RAG pipeline
 - [x] Intent-based search
+- [x] Semantic search (ChromaDB)
+- [x] Web search fallback (Tavily)
 - [x] Vietnamese language support
-- [x] SQLite database
-- [x] Unit tests
-- [x] Docker deployment
-- [x] Beautiful Gradio UI
-
-### In Progress 🔄
-- [ ] Demo video
-- [ ] Hugging Face Spaces deployment
+- [x] Modern UI redesign
+- [x] Centralized configuration
+- [x] Type hints & logging
+- [x] Demo video
 
 ### Future Enhancements 🔮
 - [ ] Multi-language support (English, Chinese)
@@ -340,21 +317,9 @@ REASONING_MODEL = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
 
 ---
 
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ---
 
@@ -363,45 +328,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Qwen Team** for Qwen2-VL-7B model
 - **vLLM Team** for efficient inference engine
 - **Gradio Team** for amazing UI framework
+- **Tavily** for web search API
 - **VIVOHOME Electronics** for product data
 
 ---
 
 ## 📞 Contact
 
-**Developer**: Nguyễn Công Tuyền
+**Developer**: Nguyễn Công Tuyền  
 **Email**: nguyencongtuyenlp@gmail.com  
-**LinkedIn**: [linkedin.com/in/yourprofile](https://linkedin.com/in/yourprofile)  
 **GitHub**: [@nguyencongtuyenlp](https://github.com/nguyencongtuyenlp)
-
----
-
-## 📸 Gallery
-
-### Example Queries
-
-**Query 1: Highest Price**
-```
-Input: "TV giá cao nhất"
-Output: 💎 Sản phẩm TV giá cao nhất:
-        - Ti vi SAM SUNG (75 DU8000)
-        - Giá: 19,500,000 VND
-```
-
-**Query 2: Lowest Price**
-```
-Input: "Tủ lạnh rẻ nhất"
-Output: 💰 Sản phẩm Tủ lạnh giá rẻ nhất:
-        - Tủ lạnh Toshiba (RS696W1 PMV60-AG)
-        - Giá: 12,250,000 VND
-```
-
-**Query 3: Normal Search**
-```
-Input: "Máy lọc nước Hòa Phát"
-Output: 📦 Sản phẩm tìm được:
-        - MÁY LỌC NƯỚC HÒA PHÁT (HPR529): 4,000,000 VND
-```
 
 ---
 
